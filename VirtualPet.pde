@@ -1,4 +1,5 @@
 
+
 void setup()
 {
   size(800,800, P3D);
@@ -130,18 +131,20 @@ void draw()
   
   //arms
   stroke(#956917);
-   strokeWeight(15);
+
     
     //left
     pushMatrix();
     translate(-230,0,0);
-    line(0, 0, 0, -300, -80, 0);
+    rotateZ(radians(-60));
+    box(15, 400, 15);
     popMatrix();
     
     //right
     pushMatrix();
     translate(230,0,0);
-    line(0, 0, 0, 300, -80, 0);
+    rotateZ(radians(60));
+    box(15, 400, 15);
     popMatrix();
   
 }
