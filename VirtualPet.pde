@@ -102,23 +102,23 @@ spotLight(25, 75, 150, 300, -500, 0, 0, radians(-90), radians(-30), 100, 0);
     adjustX +=1;
   }
   if (X1) {
-    //Backward
+    //x-
     adjustX -=1;
   }
   if (Y2) {
-    //x+
+    //y+
     adjustY +=1;
   }
   if (Y1) {
-    //Backward
+    //y-
     adjustY -=1;
   }
     if (Z2) {
-    //x+
+    //z+
     adjustZ +=1;
   }
   if (Z1) {
-    //Backward
+    //z-
     adjustZ -=1;
   }
 }
@@ -152,17 +152,13 @@ void drawGround()
   pushMatrix();
   translate(-50000, 800, -50000);
 
-  // Draw the terrain as a series of connected triangles
   stroke(50);
   fill(0, 150, 50); // Green color
 
-  // Loop through the grid
   for (int i = 0; i < groundSize - 1; i++) {
     beginShape(TRIANGLE_STRIP);
     for (int j = 0; j < groundSize; j++) {
-      // Define the first vertex with its random Y displacement
       vertex(i * groundScale, terrain[i][j], j * groundScale);
-      // Define the second vertex with its random Y displacement
       vertex((i + 1) * groundScale, terrain[i + 1][j], j * groundScale);
     }
     endShape();
@@ -387,3 +383,4 @@ void drawFox()
        popMatrix();
       
 }
+ 
