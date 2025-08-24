@@ -1,4 +1,5 @@
-boolean upP, downP, leftP, rightP, spaceP, ctrlP= false;
+
+boolean upP, downP, leftP, rightP, spaceP, shiftP= false;
 boolean WP, SP, AP, DP = false;
 float camX = 0;   
 float camY = 0;   
@@ -31,8 +32,8 @@ void keyPressed(){
  if (keyCode == RIGHT){
  rightP = true;
  } 
- if (keyCode == CONTROL){
- ctrlP = true;
+ if (keyCode == SHIFT){
+ shiftP = true;
  } 
  if (key == ' '){
  spaceP = true;
@@ -63,8 +64,8 @@ void keyReleased(){
  if (keyCode == RIGHT){
  rightP = false;
  } 
-  if (keyCode == CONTROL){
- ctrlP = false;
+  if (keyCode == SHIFT){
+ shiftP = false;
  } 
  if (key == ' '){
  spaceP = false;
@@ -131,15 +132,15 @@ void updateCamera() {
   }
   if (spaceP) {
     //Up
-    camX += forwardX * moveSpeed;
-    camY += -forwardZ * moveSpeed;
-    camZ += forwardY * moveSpeed;
-  }
-    if (ctrlP) {
-    //Down
     camX -= forwardX * moveSpeed;
     camY -= -forwardZ * moveSpeed;
     camZ -= forwardY * moveSpeed;
+  }
+    if (shiftP) {
+    //Down
+    camX += forwardX * moveSpeed;
+    camY += -forwardZ * moveSpeed;
+    camZ += forwardY * moveSpeed;
   }
 }
 void draw()
