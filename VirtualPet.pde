@@ -1,15 +1,24 @@
 
+boolean upP, downP, leftP, rightP, spaceP, ctrlP= false;
+boolean WP, SP, AP, DP = false;
+float camX = 0;   
+float camY = 0;   
+float camZ = 1500;  
 
-int rotX, rotY;
-boolean upP, downP, leftP, rightP = false;
+float camRotY = 0; 
+float camRotX = radians(180); 
 
+float moveSpeed = 5.0; 
+float rotSpeed = .02; 
 
 void setup()
 {
   size(800,800, P3D);
-  System.out.println(upP);
+  noCursor();
+  smooth(8);
 }
 
+//check if key is being held
 void keyPressed(){
  if (keyCode == UP){
  upP = true;
@@ -23,8 +32,25 @@ void keyPressed(){
  if (keyCode == RIGHT){
  rightP = true;
  } 
+ if (keyCode == CONTROL){
+ ctrlP = true;
+ } 
+ if (key == ' '){
+ spaceP = true;
+ } 
+ if (key == 'w'){
+ WP = true;
+ } 
+ if (key == 's'){
+ SP = true;
+ } 
+ if (key == 'a'){
+ AP = true;
+ } 
+ if (key == 'd'){
+ DP = true;
+ } 
 }
-
 void keyReleased(){
  if (keyCode == UP){
  upP = false;
@@ -38,8 +64,85 @@ void keyReleased(){
  if (keyCode == RIGHT){
  rightP = false;
  } 
+  if (keyCode == CONTROL){
+ ctrlP = false;
+ } 
+ if (key == ' '){
+ spaceP = false;
+ } 
+ if (key == 'w'){
+ WP = false;
+ } 
+ if (key == 's'){
+ SP = false;
+ } 
+ if (key == 'a'){
+ AP = false;
+ } 
+ if (key == 'd'){
+ DP = false;
+ } 
 }
 
+void updateCamera() {
+  
+  //Camera
+    if (leftP) {
+      camRotY += rotSpeed;
+    }
+    if (rightP) {
+      camRotY -= rotSpeed;
+    }
+    if (upP) {
+      camRotX = max(-PI/2, camRotX + rotSpeed);
+    }
+    if (downP) {
+      camRotX = min(PI/2, camRotX - rotSpeed);
+    }
+
+
+  float forwardX = sin(camRotY) * cos(camRotX);
+  float forwardY = -sin(camRotX);
+  float forwardZ = cos(camRotY) * cos(camRotX);
+  
+  //Movement
+  if (WP) {
+    //Forward
+    camX += forwardX * moveSpeed;
+    camY += forwardY * moveSpeed;
+    camZ += forwardZ * moveSpeed;
+  }
+  if (SP) {
+    //Backward
+    camX -= forwardX * moveSpeed;
+    camY -= forwardY * moveSpeed;
+    camZ -= forwardZ * moveSpeed;
+  }
+  if (AP) {
+    // Left
+    camX += forwardZ * moveSpeed;
+    camY += forwardY * moveSpeed;
+    camZ += -forwardX * moveSpeed;
+  }
+  if (DP) {
+    //Right
+    camX -= forwardZ * moveSpeed;
+    camY -= forwardY * moveSpeed;
+    camZ -= -forwardX * moveSpeed;
+  }
+  if (spaceP) {
+    //Up
+    camX += forwardX * moveSpeed;
+    camY += -forwardZ * moveSpeed;
+    camZ += forwardY * moveSpeed;
+  }
+    if (ctrlP) {
+    //Down
+    camX -= forwardX * moveSpeed;
+    camY -= -forwardZ * moveSpeed;
+    camZ -= forwardY * moveSpeed;
+  }
+}
 void draw()
 {
   background(100);
@@ -47,29 +150,18 @@ void draw()
   ambientLight(200, 200, 200); 
   directionalLight(255, 255, 255, 0, 1, 0); 
   
-  translate(width/2, height/2, -1000);
+  updateCamera();
+
+  float lookAtX = camX + sin(camRotY) * cos(camRotX);
+  float lookAtY = camY - sin(camRotX);
+  float lookAtZ = camZ + cos(camRotY) * cos(camRotX);
   
-  if (upP){
-  rotX += 1;
-  }
-  if (downP){
-  rotX -= 1;
-  }
-  if (rightP){
-  rotY +=1; 
-  }
-  if (leftP){
-  rotY -=1; 
-  }
-  
-  rotateX(radians(rotX));
-  rotateY(radians(rotY));
-  
+  camera(camX, camY, camZ, lookAtX, lookAtY, lookAtZ, 0, 1, 0);
+
+
+  //body
   noStroke();
   fill(255);
-  
-  //body
-  
     //Base
     pushMatrix();
     translate(0, 500, 0);
@@ -88,10 +180,11 @@ void draw()
     sphere(210);
     popMatrix();
   
-  noStroke();
-  fill(0);
+  
   
   //buttons
+  noStroke();
+  fill(0);
   
     //1
     pushMatrix();
@@ -246,4 +339,9 @@ void draw()
     popMatrix();
       
   
+}
+
+void drawSnowman()
+{
+
 }
