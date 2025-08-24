@@ -1,4 +1,3 @@
-
 boolean upP, downP, leftP, rightP, spaceP, ctrlP= false;
 boolean WP, SP, AP, DP = false;
 float camX = 0;   
@@ -94,10 +93,10 @@ void updateCamera() {
       camRotY -= rotSpeed;
     }
     if (upP) {
-      camRotX = max(-PI/2, camRotX + rotSpeed);
+      camRotX -= rotSpeed;
     }
     if (downP) {
-      camRotX = min(PI/2, camRotX - rotSpeed);
+      camRotX += rotSpeed;
     }
 
 
@@ -339,9 +338,4 @@ void draw()
     popMatrix();
       
   
-}
-
-void drawSnowman()
-{
-
 }
