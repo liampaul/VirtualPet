@@ -1,5 +1,4 @@
 
-PImage groundTexture;
 boolean upP, downP, leftP, rightP, spaceP, shiftP= false;
 boolean WP, SP, AP, DP = false;
 boolean X1, X2, Y1, Y2, Z1, Z2 = false;
@@ -15,16 +14,22 @@ float moveSpeed = 5.0;
 float rotSpeed = .02; 
 
 int groundScale = 5000;
-int groundSize = 100;
+int groundSize = 30;
 float[][] terrain;
+
+ArrayList<Snowflake> snowflakes;
+int numberOfSnowflakes = 400;
 
 void setup()
 {
   size(800,800, P3D);
   noCursor();
   smooth(8);
-  groundTexture = loadImage("ground_texture.jpg");
   initializeTerrain();
+    snowflakes = new ArrayList<Snowflake>();
+  for (int i = 0; i < numberOfSnowflakes; i++) {
+    snowflakes.add(new Snowflake());
+  }
 }
 
 //check if key is being held
@@ -188,8 +193,44 @@ void updateCamera() {
     camZ += forwardY * moveSpeed;
   }
 }
+
+class Snowflake {
+  float x, y, z;
+  float speed;
+  float size;
+  
+  Snowflake(){
+    x= random(-2000, 2000);
+    y = random(-2000, -1000); 
+    z = random(-2000, 2000);
+    
+    speed = random(1,3);
+    size = random (2,6);
+  }
+  void update() {
+    y+=speed;
+    
+    if (y > 800){
+    x= random(-2000, 2000);
+    y = random(-2000, -1000); 
+    z = random(-2000, 2000);
+    }
+  }
+  
+  void display() {
+    pushMatrix();
+    translate(x, y, z);
+    
+    noStroke();
+    fill(255);
+    sphere(size);
+    popMatrix();
+  }
+}
+    
 void draw()
 {
+  
   background(100);
   
   ambientLight(150, 150, 150); 
@@ -204,6 +245,10 @@ spotLight(25, 75, 150, 300, -500, 0, 0, radians(-90), radians(-30), 100, 0);
   
   camera(camX, camY, camZ, lookAtX, lookAtY, lookAtZ, 0, 1, 0);
 
+  for (Snowflake flake : snowflakes) {
+  flake.update();
+  flake.display();
+  }
   drawSnowman();
 
   drawGround();
