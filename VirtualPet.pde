@@ -18,7 +18,7 @@ int groundSize = 30;
 float[][] terrain;
 
 ArrayList<Snowflake> snowflakes;
-int numberOfSnowflakes = 400;
+int numberOfSnowflakes = 300;
 
 void setup()
 {
@@ -200,20 +200,20 @@ class Snowflake {
   float size;
   
   Snowflake(){
-    x= random(-2000, 2000);
-    y = random(-2000, -1000); 
-    z = random(-2000, 2000);
+    x= (float) ((Math.random()*4000)-2000);
+    y = (float) ((Math.random()*1000)-2000); 
+    z = (float) ((Math.random()*4000)-2000);
     
-    speed = random(1,3);
-    size = random (2,6);
+    speed = (float) ((Math.random()*2)+1);
+    size = (float) ((Math.random()*3)+2);
   }
   void update() {
     y+=speed;
     
     if (y > 800){
-    x= random(-2000, 2000);
-    y = random(-2000, -1000); 
-    z = random(-2000, 2000);
+    x= (float) ((Math.random()*4000)-2000);
+    y = (float) ((Math.random()*1000)-2000); 
+    z = (float) ((Math.random()*4000)-2000);
     }
   }
   
@@ -470,7 +470,7 @@ void initializeTerrain()
   // Initialize the terrain with random values
   for (int i = 0; i < groundSize; i++) {
     for (int j = 0; j < groundSize; j++) {
-      terrain[i][j] = random(-1, 1);
+      terrain[i][j] = 0;
     }
   }
 }
