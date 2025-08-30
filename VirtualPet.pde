@@ -17,8 +17,7 @@ int groundScale = 5000;
 int groundSize = 30;
 float[][] terrain;
 
-ArrayList<Snowflake> snowflakes;
-int numberOfSnowflakes = 300;
+
 
 void setup()
 {
@@ -27,8 +26,6 @@ void setup()
   smooth(8);
   initializeTerrain();
     snowflakes = new ArrayList<Snowflake>();
-  for (int i = 0; i < numberOfSnowflakes; i++) {
-    snowflakes.add(new Snowflake());
   }
 }
 
@@ -194,40 +191,7 @@ void updateCamera() {
   }
 }
 
-class Snowflake {
-  float x, y, z;
-  float speed;
-  float size;
-  
-  Snowflake(){
-    x= (float) ((Math.random()*4000)-2000);
-    y = (float) ((Math.random()*1000)-2000); 
-    z = (float) ((Math.random()*4000)-2000);
-    
-    speed = (float) ((Math.random()*2)+1);
-    size = (float) ((Math.random()*3)+2);
-  }
-  void update() {
-    y+=speed;
-    
-    if (y > 800){
-    x= (float) ((Math.random()*4000)-2000);
-    y = (float) ((Math.random()*1000)-2000); 
-    z = (float) ((Math.random()*4000)-2000);
-    }
-  }
-  
-  void display() {
-    pushMatrix();
-    translate(x, y, z);
-    
-    noStroke();
-    fill(255);
-    sphere(size);
-    popMatrix();
-  }
-}
-    
+
 void draw()
 {
   
@@ -245,10 +209,7 @@ spotLight(25, 75, 150, 300, -500, 0, 0, radians(-90), radians(-30), 100, 0);
   
   camera(camX, camY, camZ, lookAtX, lookAtY, lookAtZ, 0, 1, 0);
 
-  for (Snowflake flake : snowflakes) {
-  flake.update();
-  flake.display();
-  }
+
   drawSnowman();
 
   drawGround();
