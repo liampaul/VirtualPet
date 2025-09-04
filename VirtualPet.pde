@@ -1,6 +1,11 @@
+import processing.serial.*;
+import cc.arduino.*;
+Arduino arduino;
 
 boolean upP, downP, leftP, rightP, spaceP, shiftP= false;
 boolean WP, SP, AP, DP = false;
+boolean X1, X2, Y1, Y2, Z1, Z2 = false;
+float adjustX, adjustY, adjustZ = 0;
 float camX = 0;   
 float camY = 0;   
 float camZ = 1500;  
@@ -11,11 +16,26 @@ float camRotX = radians(180);
 float moveSpeed = 5.0; 
 float rotSpeed = .02; 
 
+int groundScale = 5000;
+int groundSize = 30;
+float[][] terrain;
+
+ArrayList<Snowflake> snowflakes;
+int numberOfSnowflakes = 100;
+
+float time = 0;
+
 void setup()
 {
   size(800,800, P3D);
+  arduino = new Arduino(this, Arduino.list()[0], 57600);
   noCursor();
   smooth(8);
+  initializeTerrain();
+    snowflakes = new ArrayList<Snowflake>();
+  for (int i = 0; i < numberOfSnowflakes; i++) {
+    snowflakes.add(new Snowflake());
+  }
 }
 
 //check if key is being held
@@ -50,6 +70,24 @@ void keyPressed(){
  if (key == 'd'){
  DP = true;
  } 
+  if (key == 'u'){
+  X1 = true;
+ } 
+ if (key == 'i'){
+ X2 = true;
+ } 
+ if (key == 'j'){
+ Y1 = true;
+ } 
+ if (key == 'k'){
+ Y2 = true;
+ } 
+ if (key == 'm'){
+ Z1 = true;
+ } 
+  if (key == ','){
+ Z2 = true;
+ } 
 }
 void keyReleased(){
  if (keyCode == UP){
@@ -81,6 +119,24 @@ void keyReleased(){
  } 
  if (key == 'd'){
  DP = false;
+ } 
+ if (key == 'u'){
+  X1 = false;
+ } 
+ if (key == 'i'){
+ X2 = false;
+ } 
+ if (key == 'j'){
+ Y1 = false;
+ } 
+ if (key == 'k'){
+ Y2 = false;
+ } 
+ if (key == 'm'){
+ Z1 = false;
+ } 
+  if (key == ','){
+ Z2 = false;
  } 
 }
 
@@ -143,12 +199,49 @@ void updateCamera() {
     camZ += forwardY * moveSpeed;
   }
 }
+
+class Snowflake {
+  float x, y, z;
+  float speed;
+  float size;
+  
+  Snowflake(){
+    x= (float) ((Math.random()*4000)-2000);
+    y = (float) ((Math.random()*1000)-2000); 
+    z = (float) ((Math.random()*4000)-2000);
+    
+    speed = (float) ((Math.random()*2)+1);
+    size = (float) ((Math.random()*3)+2);
+  }
+  void update() {
+    y+=speed;
+    
+    if (y > 800){
+    x= (float) ((Math.random()*4000)-2000);
+    y = (float) ((Math.random()*1000)-2000); 
+    z = (float) ((Math.random()*4000)-2000);
+    }
+  }
+  
+  void display() {
+    pushMatrix();
+    translate(x, y, z);
+    
+    noStroke();
+    fill(255);
+    sphere(size);
+    popMatrix();
+  }
+}
+    
 void draw()
 {
-  background(100);
+  System.out.println(arduino.analogRead(6)/1023);
+  background(0,0,100);
   
-  ambientLight(200, 200, 200); 
-  directionalLight(255, 255, 255, 0, 1, 0); 
+  ambientLight(150, 150, 150); 
+  
+//spotLight(25, 75, 150, 300, -500, 0, 0, radians(-90), radians(-30), 100, 0);   
   
   updateCamera();
 
@@ -158,8 +251,56 @@ void draw()
   
   camera(camX, camY, camZ, lookAtX, lookAtY, lookAtZ, 0, 1, 0);
 
+  pushMatrix();
+  
+  time+= arduino.analogRead(6)/1023; 
+  time-= arduino.analogRead(1)/1023;
+  if(time>359)
+    time = 0;
+  if(time<0)
+    time = 359;
+  rotateX(radians(time));
+  drawSunMoon();
+  popMatrix();
+  for (Snowflake flake : snowflakes) {
+  flake.update();
+  flake.display();
+  }
+  drawSnowman();
 
-  //body
+  drawGround();
+  translate(-200,750,00);
+  drawFox();
+
+  if (X2) {
+    //x+
+    adjustX +=1;
+  }
+  if (X1) {
+    //Backward
+    adjustX -=1;
+  }
+  if (Y2) {
+    //x+
+    adjustY +=1;
+  }
+  if (Y1) {
+    //Backward
+    adjustY -=1;
+  }
+    if (Z2) {
+    //x+
+    adjustZ +=1;
+  }
+  if (Z1) {
+    //Backward
+    adjustZ -=1;
+  }
+}
+
+void drawSnowman()
+{
+ //body
   noStroke();
   fill(255);
     //Base
@@ -338,5 +479,279 @@ void draw()
     endShape();
     popMatrix();
       
-  
 }
+
+void initializeTerrain()
+{
+  terrain = new float[groundSize][groundSize];
+  // Initialize the terrain with random values
+  for (int i = 0; i < groundSize; i++) {
+    for (int j = 0; j < groundSize; j++) {
+      terrain[i][j] = 0;
+    }
+  }
+}
+
+void drawGround()
+{
+  stroke(1);
+  pushMatrix();
+  translate(-50000, 800, -50000);
+
+  // Draw the terrain as a series of connected triangles
+  stroke(50);
+  fill(0, 150, 50); // Green color
+  
+  // Loop through the grid
+  for (int i = 0; i < groundSize - 1; i++) {
+    beginShape(TRIANGLE_STRIP);
+    for (int j = 0; j < groundSize; j++) {
+      // Define the first vertex with its random Y displacement
+      vertex(i * groundScale, terrain[i][j], j * groundScale);
+      // Define the second vertex with its random Y displacement
+      vertex((i + 1) * groundScale, terrain[i + 1][j], j * groundScale);
+    }
+    endShape();
+   
+  }
+  popMatrix();
+}
+
+void drawFox()
+{    
+    stroke(1);
+    //body  
+    pushMatrix();
+    translate(700 , 0, 0);
+    rotateY(radians(-140));
+    fill(#F58020);
+    beginShape(TRIANGLE_STRIP);
+    float h = 0;
+    for(int i = 0; i <=20; i+=1)
+    {
+      
+      float ang = radians(-300) / 20 * i;
+      float x = cos(ang)*150;
+      float z = sin(ang)*150;
+      vertex(x,0-h,z);
+      vertex(x,-75-h,z);
+      h+=3;
+    }
+    endShape();
+        beginShape(TRIANGLE_STRIP);
+    h = 0;
+    for(int i = 0; i <=20; i+=1)
+    {
+      float ang = radians(-300) / 20 * i;
+      float x = cos(ang)*75;
+      float z = sin(ang)*75;
+      vertex(x,0-h,z);
+      vertex(x,-75-h,z);
+      h+=3;
+    }
+    endShape();
+    beginShape(TRIANGLE_STRIP);
+    h = 0;
+    for(int i = 0; i <=20; i+=1)
+    {
+      
+      float ang = radians(-300) / 20 * i;
+      float x1 = cos(ang)*150;
+      float z1 = sin(ang)*150;
+      float x2 = cos(ang)*75;
+      float z2 = sin(ang)*75;
+      vertex(x1,-75-h,z1);
+      vertex(x2,-75-h,z2);
+      h +=3;
+    }
+    endShape();
+    popMatrix();
+    
+    //tail
+    pushMatrix();
+    translate(640,30,75);
+    beginShape(TRIANGLE_FAN);
+    vertex(-200, -30, -150);
+    
+    vertex(2, -105, -27); 
+    vertex(2, -30, -27);
+    vertex(-61,-30, 18);
+    vertex(-61,-105, 18);
+    vertex(2, -105, -27); 
+    endShape();
+    popMatrix();
+    
+    fill(255);
+    pushMatrix();
+    translate(640,30,75);
+    beginShape(TRIANGLE_FAN);
+    vertex(-200, -30, -150);
+    vertex(-99, -67, -89); 
+    vertex(-106, -23, -97);
+    vertex(-154,-35, -46);
+    vertex(-108,-86, -51);
+    vertex(-99, -67, -89);
+    endShape();
+    popMatrix();
+    
+    
+    //head
+    translate(585,-158,5);
+       beginShape(TRIANGLES);
+       
+       //center
+       fill(252, 160, 48);
+       vertex(0,0,0);
+       vertex(0,75,10);
+       vertex(25, 5, -5);
+       fill(252, 149, 45);
+       vertex(0,0,0);
+       vertex(0,75,10);
+       vertex(-25, 5, -5);
+       
+       //side1
+       fill(255, 154, 38);
+       vertex(0,75,10);
+       vertex(25, 5, -5);
+       vertex(60, 35, -10);
+       fill(219, 88, 22);
+       vertex(0,75,10);
+       vertex(-25, 5, -5);
+       vertex(-60, 35, -10);
+       
+       //side 2 
+       fill(255, 159, 33);
+       vertex(25, 5, -5);
+       vertex(60, 35, -10);
+       vertex(65, 0, -15);
+       fill(217, 85, 20);
+       vertex(-25, 5, -5);
+       vertex(-60, 35, -10);
+       vertex(-65, 0, -15);
+       
+       //center bottom
+       fill(255, 254, 232);
+       vertex(0,75,10);
+       vertex(60, 35, -10);
+       vertex(90, 40, -20);
+       fill(222, 199, 169);
+       vertex(0,75,10);
+       vertex(-60, 35, -10);
+       vertex(-90, 40, -20);
+       
+       // side 3
+       fill(252, 154, 33);
+       vertex(60, 35, -10);
+       vertex(90, 40, -20);
+       vertex(65, 0, -15);
+       fill(214, 86, 21);
+       vertex(-60, 35, -10);
+       vertex(-90, 40, -20);
+       vertex(-65, 0, -15);
+       
+       //bottom
+       fill(255, 187, 110);
+       vertex(0,75,10);
+       vertex(90, 40, -20);
+       vertex(20, 90, -25);
+       fill(189, 146, 117);
+       vertex(0,75,10);
+       vertex(-90, 40, -20);
+       vertex(-20, 90, -25);
+       
+       // bottom connectore
+       fill(219, 115, 35);
+       vertex(0,75,10);
+       vertex(20, 90, -25);
+       vertex(-20, 90, -25);
+       
+       // side top
+       fill(252, 172, 50);
+       vertex(25, 5, -5);
+       vertex(65, 0, -15);
+       vertex(22, -20, -20);
+       fill(247, 112, 27);
+       vertex(-25, 5, -5);
+       vertex(-65, 0, -15);
+       vertex(-22, -20, -20);
+       
+       //left ear
+       fill(255, 155, 48);
+       vertex(-70, 0, -15);
+       vertex(-22, -20, -20);
+       vertex(-90, -80, -20);
+       fill(255, 216, 148);
+       vertex(-55, 10, -15);
+       vertex(-35, -20, -15);
+       vertex(-85, -70, -15);
+       
+       //right ear fold
+       fill(255, 140, 42);
+       vertex(72, -50, -20);
+       vertex(53, -60, -20);
+       vertex(57, -30, 0);
+       
+       endShape();
+       
+       beginShape(QUADS);
+       
+       // center top
+       fill(255, 172, 64);
+       vertex(0,0,0);
+       vertex(0,-30, -30);
+       vertex(22, -20, -20);
+       vertex(25, 5, -5);
+       fill(252, 155, 58);
+       vertex(0,0,0);
+       vertex(0,-30, -30);
+       vertex(-22, -20, -20);
+       vertex(-25, 5, -5);
+       
+       //right ear base
+       fill(255, 155, 48);
+       vertex(70, 0, -15);
+       vertex(72, -50, -20);
+       vertex(53, -60, -20);
+       vertex(22, -20, -20);
+       fill(255, 216, 148);
+       vertex(55, 10, -15);
+       vertex(68, -40, -15);
+       vertex(60, -50, -15);
+       vertex(35, -20, -15);
+       endShape();
+       
+       fill(0);
+       //eyes and nose
+       pushMatrix();
+       translate(0, 0, 5);
+       ellipse(25,40, 10, 10);
+       translate(0, 0, 5);
+       ellipse(-25,40, 10, 10);
+       translate(0, 70, 10);
+       sphere(8);
+       popMatrix();
+      
+}
+
+void drawSunMoon(){
+
+if(time>180){
+pushMatrix();
+translate(0, 0, -2000);
+fill(200, 200, 240);
+ellipse(0, 0 , 500, 500);
+fill(0,0,100);
+translate(0, 0, 1);
+ellipse(-100, 0 , 400, 400);
+spotLight(75, 75, 255, 0, 0, 0, 0, radians(0), radians(90), 100, 0); 
+popMatrix();
+};
+if(time<180){
+pushMatrix();
+translate(0, 0, 2000);
+fill(255, 255, 75);
+ellipse(0, 0 , 500, 500);
+spotLight(255, 100, 75, 0, 0, 0, 0, radians(0), radians(90), 100, 0); 
+popMatrix();
+};
+};
