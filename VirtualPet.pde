@@ -1,4 +1,3 @@
-
 boolean upP, downP, leftP, rightP, spaceP, shiftP= false;
 boolean WP, SP, AP, DP = false;
 boolean X1, X2, Y1, Y2, Z1, Z2 = false;
@@ -17,7 +16,11 @@ int groundScale = 5000;
 int groundSize = 30;
 float[][] terrain;
 
+ArrayList<Snowflake> snowflakes;
+int numberOfSnowflakes = 300;
 
+int time = 0;
+boolean isDay = false;
 
 void setup()
 {
@@ -26,6 +29,8 @@ void setup()
   smooth(8);
   initializeTerrain();
     snowflakes = new ArrayList<Snowflake>();
+  for (int i = 0; i < numberOfSnowflakes; i++) {
+    snowflakes.add(new Snowflake());
   }
 }
 
@@ -191,25 +196,76 @@ void updateCamera() {
   }
 }
 
-
+class Snowflake {
+  float x, y, z;
+  float speed;
+  float size;
+  
+  Snowflake(){
+    x= (float) ((Math.random()*4000)-2000);
+    y = (float) ((Math.random()*1000)-2000); 
+    z = (float) ((Math.random()*4000)-2000);
+    
+    speed = (float) ((Math.random()*2)+1);
+    size = (float) ((Math.random()*3)+2);
+  }
+  void update() {
+    y+=speed;
+    
+    if (y > 800){
+    x= (float) ((Math.random()*4000)-2000);
+    y = (float) ((Math.random()*1000)-2000); 
+    z = (float) ((Math.random()*4000)-2000);
+    }
+  }
+  
+  void display() {
+    pushMatrix();
+    translate(x, y, z);
+    
+    noStroke();
+    fill(255);
+    sphere(size);
+    popMatrix();
+  }
+}
+    
 void draw()
 {
   
   background(100);
-  
-  ambientLight(150, 150, 150); 
-  
-spotLight(25, 75, 150, 300, -500, 0, 0, radians(-90), radians(-30), 100, 0);   
+  //float light = sin(radians(time+180))*50;
+  ambientLight(100, 100, 100); 
+  //if(light<0) light = 0;
+  //ambientLight(light, light, light); 
+  //print();
+  //spotLight(25, 75, 150, 300, -500, 0, 0, radians(-90), radians(-30), 100, 0);   
   
   updateCamera();
-
+  
   float lookAtX = camX + sin(camRotY) * cos(camRotX);
   float lookAtY = camY - sin(camRotX);
   float lookAtZ = camZ + cos(camRotY) * cos(camRotX);
   
   camera(camX, camY, camZ, lookAtX, lookAtY, lookAtZ, 0, 1, 0);
+  
+  time++;
+  if(time > 180){
+  time = 1;
+  isDay = !isDay;
+  }
+  print(isDay);
+  pushMatrix();
+  translate(0,800,0);
+  rotateX(radians(time));
+  drawSunMoon();
+  popMatrix();
 
 
+  for (Snowflake flake : snowflakes) {
+  flake.update();
+  flake.display();
+  }
   drawSnowman();
 
   drawGround();
@@ -541,7 +597,6 @@ void drawFox()
     
     //head
     translate(585,-158,5);
-    System.out.println(640+adjustX + "" + -300+adjustY + " " + 10+adjustZ);
        beginShape(TRIANGLES);
        
        //center
@@ -676,5 +731,19 @@ void drawFox()
        sphere(8);
        popMatrix();
       
-}
-    
+};
+void drawSunMoon(){
+pushMatrix();
+
+if (isDay){
+  translate(0,0, -2000);
+  ellipse(0,0, 500, 500);
+  spotLight(240, 250, 140, 0, 0, 0, 0, radians(0), radians(-90), 100, 0);   
+  }
+else{
+  translate(0,0, 2000);
+  ellipse(0,0, 500, 500);
+  spotLight(65, 90, 90, 0, 0, 0, 0, radians(0), radians(-90), 100, 0);   
+};
+  popMatrix();
+}; 
